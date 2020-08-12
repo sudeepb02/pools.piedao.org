@@ -1,5 +1,5 @@
 import BigNumber from "bignumber.js";
-import WalletConnectProvider from "@walletconnect/web3-provider";
+// import WalletConnectProvider from "@walletconnect/web3-provider";
 import { ethers } from "ethers";
 
 import { allowances, eth } from "./eth/writables.js";
@@ -17,12 +17,12 @@ export { subject } from "./eth/observables.js";
 
 const Web3Modal = window.Web3Modal.default;
 const providerOptions = {
-  walletconnect: {
-    package: WalletConnectProvider, // required
-    options: {
-      infuraId: "8043bb2cf99347b1bfadfb233c5325c0" // required
-    }
-  }
+  // walletconnect: {
+  //   package: WalletConnectProvider, // required
+  //   options: {
+  //     infuraId: "8043bb2cf99347b1bfadfb233c5325c0" // required
+  //   }
+  // }
 };
 
 const web3Modal = new Web3Modal({

@@ -8,6 +8,8 @@
   import images from "../config/images.json";
   import poolsConfig from "../config/pools.json";
 
+  import TokenSelectModal from "./TokenSelectModal.svelte";
+
   import {
     allowances,
     approveMax,
@@ -17,18 +19,34 @@
     eth,
     pools,
     bumpLifecycle,
-    subject
+    subject,
   } from "../stores/eth.js";
-  import { amountFormatter, fetchPooledTokens, maxAmount, getTokenImage } from "./helpers.js";
+  import {
+    amountFormatter,
+    fetchPieTokens,
+    fetchPooledTokens,
+    maxAmount,
+    getTokenImage,
+  } from "./helpers.js";
   import { displayNotification } from "../notifications.js";
 
   export let token; // NOTE: This really should be named poolAddress. Token is too generic.
   let type = "multi";
 
+  let tokenSelectModalOpen = true;
+  const tokenSelectCallback = (token) => {
+    tokenSelectModalOpen = false;
+    if (token) {
+      window.location.hash = `#/pools/${token.address}`;
+    }
+  };
+
   // let balanceClass = 'blur-heavy';
   // let yourBalanceClass = 'blur-light';
 
   let amount = "1.00000000";
+
+  $: pieTokens = fetchPieTokens($balances);
 
   $: tokenSymbol = (poolsConfig[token] || {}).symbol;
   $: tokenLogo = images.logos[token];
@@ -85,7 +103,7 @@
     emitter.on("txConfirmed", ({ hash }) => {
       const { dismiss } = displayNotification({
         message: "Confirming...",
-        type: "pending"
+        type: "pending",
       });
 
       const subscription = subject("blockNumber").subscribe({
@@ -93,22 +111,22 @@
           displayNotification({
             autoDismiss: 15000,
             message: `${requestedAmount.toFixed()} ${tokenSymbol} successfully minted`,
-            type: "success"
+            type: "success",
           });
           dismiss();
           subscription.unsubscribe();
-        }
+        },
       });
 
       return {
         autoDismiss: 1,
         message: "Mined",
-        type: "success"
+        type: "success",
       };
     });
   };
 
-  const setValuePercentage = percent => {
+  const setValuePercentage = (percent) => {
     const max = maxAmount(token, pooledTokens);
     const adjusted = max.multipliedBy(BigNumber(percent).dividedBy(100));
     amount = adjusted.toFixed(8, BigNumber.ROUND_DOWN);
@@ -169,10 +187,15 @@
       <input type="number" bind:value={amount} class="text-xl font-thin" />
       <div
         class="asset-btn float-right mt-14px h-32px bg-grey-243 rounded-32px px-2px flex
-        align-middle justify-center items-center">
+        align-middle justify-center items-center"
+        on:click={() => (tokenSelectModalOpen = true)}>
         <img class="token-icon w-26px h-26px my-4px mx-2px" src={tokenLogo} alt={tokenSymbol} />
         <span class="py-2px px-4px">{tokenSymbol}</span>
       </div>
+      <TokenSelectModal
+        tokens={pieTokens}
+        open={tokenSelectModalOpen}
+        callback={tokenSelectCallback} />
     </div>
   </div>
 
@@ -185,7 +208,7 @@
           amount: pooledToken.percentage,
           approximatePrefix: '',
           displayDecimals: 2,
-          rounding: 4
+          rounding: 4,
         })}%
       </div>
       <img
@@ -204,7 +227,7 @@
       <a
         class={pooledToken.actionBtnClass}
         href={pooledToken.buyLink}
-        on:click={evt => action(evt, pooledToken)}
+        on:click={(evt) => action(evt, pooledToken)}
         target="_blank">
         {pooledToken.actionBtnLabel}
       </a>

@@ -31,6 +31,8 @@ const deriveRoute = () => {
 
 const formatRoute = (route) => {
   let address;
+  const notFound = { page: NotFound, params: { path: `/${route.join("/")}` } };
+
   switch (route[0] || "root") {
     case "pie":
       address = (route[1] || "").toLowerCase();
@@ -40,13 +42,12 @@ const formatRoute = (route) => {
       if (pools.available.includes(address)) {
         return { page: Pool, params: { address } };
       }
-
-      break;
+      return notFound;
     case "root":
       return defaultRouteObj;
   }
 
-  return { page: NotFound, params: { path: `/${route.join("/")}` } };
+  return notFound;
 };
 
 const route = deriveRoute();
